@@ -5234,6 +5234,16 @@ static func curvature(h: float, hx0: float, hx1: float, hz0: float, hz1: float,
 		d: float) -> float:
 	return (4.0 * h - (hx0 + hx1 + hz0 + hz1)) / (2.0 * maxf(d, 0.001))
 
+
+## A last word on the splat at a world position, after `splat_weights` has had its
+## say. `splat_weights` is a function of the ground's SHAPE only — slope,
+## curvature, zones — and is never told where it is; this is the hook for a field
+## that paints by place. Identity here. ArenaField paints its board dirt with it.
+## The mesher runs it on every vertex, so keep it cheap.
+func splat_at(x: float, z: float, weights: Color) -> Color:
+	return weights
+
+
 # The four surface weights, normalised, given slope and curvature.
 #
 # `convexity` is `curvature()` above -- positive on ridges and rims, negative in

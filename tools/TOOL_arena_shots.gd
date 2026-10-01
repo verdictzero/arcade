@@ -14,13 +14,11 @@ const LOAD_TIMEOUT_S := 600.0
 
 # name -> [eye, look_at target]
 const VIEWS := {
-	"game": [Vector3(0, 132, 92), Vector3(0, 0, 0)],
-	"high": [Vector3(0, 420, 330), Vector3(0, 0, -20)],
-	"meadow_low": [Vector3(0, 6, 150), Vector3(0, 2, 0)],
-	"treeline_low": [Vector3(-20, 8, 20), Vector3(-20, 6, -120)],
-	"top": [Vector3(0, 600, 0.01), Vector3(0, 0, 0)],
+	"game": [],  # the scene's own FlyCamera pose
+	"high": [Vector3(0, 260, 200), Vector3(0, 0, -10)],
+	"maze_low": [Vector3(-14, 9, 34), Vector3(0, 0, 0)],
+	"meadow_low": [Vector3(0, 4, 70), Vector3(0, 1, 0)],
 }
-
 
 func _initialize() -> void:
 	_run.call_deferred()
@@ -44,10 +42,14 @@ func _run() -> void:
 			break
 		await process_frame
 	print("loaded in %.1fs" % ((Time.get_ticks_msec() - t0) / 1000.0))
+	var game_pose := cam.global_transform
 	for view_name in VIEWS:
 		var v: Array = VIEWS[view_name]
-		cam.global_position = v[0]
-		cam.look_at(v[1], Vector3.UP if absf((v[1] - v[0]).normalized().y) < 0.99 else Vector3.FORWARD)
+		if v.is_empty():
+			cam.global_transform = game_pose
+		else:
+			cam.global_position = v[0]
+			cam.look_at(v[1], Vector3.UP if absf((v[1] - v[0]).normalized().y) < 0.99 else Vector3.FORWARD)
 		for i in SETTLE_FRAMES:
 			await process_frame
 		var img := root.get_viewport().get_texture().get_image()

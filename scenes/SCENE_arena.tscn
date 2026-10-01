@@ -2,17 +2,18 @@
 
 ; THE PAC-MAN ARENA. Island 0's world from golf, reshaped by ArenaField
 ; (data/ARENAFIELD_pacman.tres, scripts/world/SCRIPT_arena_field.gd) into a flat
-; 112 x 124 m floor for the hedge maze, centred on the origin, with forest on the
-; three far sides and a thick meadow on the camera's side (+Z), grass only. The rest of the island is
-; backdrop. Terrain is IslandWorld; plants are VegScatter (trees, bushes, ferns) and
+; 48 x 52.8 m dirt floor centred on the origin, with forest on the three far sides
+; and a thick meadow on the camera's side (+Z), grass only. The rest of the island
+; is backdrop. HedgeMaze stands the classic board on the dirt in hedge blocks
+; (scripts/world/SCRIPT_hedge_maze.gd, data/MAZE_classic.txt). Terrain is IslandWorld; plants are VegScatter (trees, bushes, ferns) and
 ; GrassScatter; sky, cloud sea, horizon band, dither and loading screen came across
 ; with it. None of golf's game did (wreck, pod, ruins, golf wall, pause menu).
 ;
 ; THERE IS NO LIGHT. Every material here is unshaded and computes its own sun from
 ; the `tod_*` shader globals TimeOfDay publishes; SunPivot only holds the direction.
 ;
-; FlyCamera starts in the gameplay view: south of the board, 55 degrees down at its
-; centre, FOV 50. It still flies (WASD/QE, wheel for speed) until the game camera
+; FlyCamera starts in the gameplay view: 100 m out to the south of the board,
+; 60 degrees down at its centre, FOV 50. It still flies (WASD/QE, wheel for speed) until the game camera
 ; replaces it.
 
 [ext_resource type="Script" uid="uid://dpgliikcwmv3d" path="res://scripts/world/SCRIPT_island_world.gd" id="1_world"]
@@ -48,6 +49,7 @@
 [ext_resource type="Texture2D" uid="uid://c2ke0xk804eqm" path="res://sprites/vegetation/SPRITE_grass_6_128.png" id="39_grass"]
 [ext_resource type="Script" path="res://scripts/world/SCRIPT_horizon_clouds.gd" id="25_horizonclouds"]
 [ext_resource type="Material" path="res://materials/MAT_horizon_clouds.tres" id="26_horizoncloudmat"]
+[ext_resource type="Script" path="res://scripts/world/SCRIPT_hedge_maze.gd" id="70_maze"]
 
 [sub_resource type="Sky" id="Sky_w3"]
 sky_material = ExtResource("5_sky")
@@ -87,7 +89,7 @@ environment = SubResource("Env_w3")
 transform = Transform3D(0.4608442, 0.13379453, -0.8773372, 0.31493494, 0.89957845, 0.30261424, 0.8297219, -0.4157622, 0.3724289, 0, 800, 0)
 
 [node name="FlyCamera" type="Camera3D" parent="." unique_id=106799914]
-transform = Transform3D(1, 0, 0, 0, 0.5736, -0.8192, 0, 0.8192, 0.5736, 0, 132, 92)
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866, 0, -0.866, 0.5, 0, 86.6, 50)
 current = true
 fov = 50.0
 far = 6000.0
@@ -101,6 +103,9 @@ terrain_material = ExtResource("4_terrain")
 cliff_material = ExtResource("12_cliff")
 view_distance = 2000.0
 prewarm = true
+
+[node name="HedgeMaze" type="Node3D" parent="."]
+script = ExtResource("70_maze")
 
 [node name="VegScatter" type="Node3D" parent="." unique_id=617426688]
 script = ExtResource("13_veg")

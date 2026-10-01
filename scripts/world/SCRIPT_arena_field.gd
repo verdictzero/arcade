@@ -6,15 +6,16 @@ extends IslandField
 # one the camera looks in from — a thick meadow: grass, and nothing taller, so no
 # plant ever stands between the camera and the maze.
 #
-# It is the island engine with three things overridden, not a second engine. The
+# It is the island engine with four things overridden, not a second engine. The
 # mesher, the bake, the vegetation and the grass all still talk to an IslandField;
-# this one answers differently in three places:
+# this one answers differently in four places:
 #
 #   base_height  — the ground is pinned flat over the arena and the open side, and
 #                  the island's own hills only rise again out in the forest.
 #   forest_at    — zero on the arena and its margin and on the open side; a dense
 #                  band hard against the margin on the other three (the treeline
 #                  that frames the board); the island's own forest noise beyond.
+#   splat_at     — the board is bare dirt.
 #   sample       — carries three extra keys the scatters read, because forest
 #                  density alone cannot keep a plant off the board: the scatters
 #                  plant bushes and the odd tree on OPEN ground too
@@ -35,9 +36,13 @@ extends IslandField
 ## The arena's centre, in world XZ. Leave it on the hub's centre unless the hub
 ## moves too: the hub island is what puts land under it.
 @export var arena_center := Vector2.ZERO
-## The maze floor's full size in metres, X by Z. 112 x 124 is the arcade board's
-## 28 x 31 tiles at 4 m a tile.
-@export var arena_size := Vector2(112.0, 124.0)
+## The maze floor's full size in metres, X by Z: the hedge maze plus a dirt rim.
+## 48 x 52.8 is SCRIPT_hedge_maze.gd's classic 28 x 31 board at 1.6 m a tile
+## (44.8 x 49.6) with one tile of dirt round it.
+@export var arena_size := Vector2(48.0, 52.8)
+## The floor is bare dirt (the splat's soil channel, TEX_dirt_01), grading to the
+## surrounding grass over this many metres past the arena's edge.
+@export var dirt_feather := 1.5
 ## The height the floor is pinned to. Relative to the island's base altitude.
 @export var arena_floor_y := 0.0
 
@@ -117,6 +122,18 @@ func forest_at(x: float, z: float, mask: float, slope: float,
 	return f * (1.0 - maxf(clearing_weight(x, z), open_side_weight(x, z)))
 
 
+## 1 on the dirt floor, easing to 0 over `dirt_feather` past the arena's edge.
+func dirt_weight(x: float, z: float) -> float:
+	return 1.0 - smoothstep(0.0, maxf(dirt_feather, 0.001), arena_distance(x, z))
+
+
+func splat_at(x: float, z: float, weights: Color) -> Color:
+	var d := dirt_weight(x, z)
+	if d <= 0.0:
+		return weights
+	return weights.lerp(Color(0.0, 1.0, 0.0, 0.0), d)
+
+
 func sample(x: float, z: float) -> Dictionary:
 	var s := super(x, z)
 	if not s.get("on_land", false):
@@ -126,4 +143,8 @@ func sample(x: float, z: float) -> Dictionary:
 	s["arena"] = arena_weight(x, z)
 	s["veg_clear"] = maxf(clear, open)
 	s["meadow"] = open * (1.0 - arena_weight(x, z))
+	var w := splat_at(x, z, s["weights"])
+	s["weights"] = w
+	if dirt_weight(x, z) >= 0.5:
+		s["surface"] = "soil"
 	return s

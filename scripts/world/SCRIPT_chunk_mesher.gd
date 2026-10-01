@@ -385,8 +385,8 @@ static func build(field: IslandField, isl: IslandField.Island, base_x: float,
 			var rw := 0.0
 			if not gruin.is_empty():
 				rw = field.ruin_wear(wx, wz, gruin[k])
-			gcolor[k] = field.splat_weights(slope, conv, sand, m, flat, kind, forest,
-					cr.y, dv.y, rw)
+			gcolor[k] = field.splat_at(wx, wz, field.splat_weights(slope, conv, sand, m,
+					flat, kind, forest, cr.y, dv.y, rw))
 			# The golf channel is the REMAPPED flatten weight, not the weight: the
 			# ground eases out over a 75 m apron and the mowing does not. See
 			# `IslandField.golf_groom_lo`. The build channel is unremapped — a pad

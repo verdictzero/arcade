@@ -4,7 +4,7 @@
 
 ; THE PAC-MAN ARENA'S GROUND. Golf's ISLANDFIELD_hub_solid, run through ArenaField
 ; (scripts/world/SCRIPT_arena_field.gd): the same hub island, now just the far
-; backdrop, with a flat 112 x 124 m maze floor at its centre, a treeline on the
+; backdrop, with a flat 48 x 52.8 m dirt maze floor at its centre, a treeline on the
 ; three far sides and a grass meadow on the camera's side (+Z).
 ;
 ; Changed from hub_solid: golf zones, the crash crater, the pod's divot and the ruin
