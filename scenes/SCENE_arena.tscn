@@ -12,9 +12,12 @@
 ; THERE IS NO LIGHT. Every material here is unshaded and computes its own sun from
 ; the `tod_*` shader globals TimeOfDay publishes; SunPivot only holds the direction.
 ;
-; FlyCamera starts in the gameplay view: 100 m out to the south of the board,
-; 60 degrees down at its centre, FOV 50. It still flies (WASD/QE, wheel for speed) until the game camera
-; replaces it.
+; FlyCamera starts in the gameplay view: 65 degrees down, FOV 30, 98 m out to the
+; south, framing the whole board edge to edge with ~8% to spare. The narrow lens is
+; what keeps the corridors open: a 1.6 m hedge hides 1.6 m of corridor behind it
+; from any eye under 45 degrees, and a wide lens close in sees the far rows from
+; ~38. At FOV 30 the far rows are seen from ~52 and the near ones from ~79. It
+; still flies (WASD/QE, wheel for speed) until the game camera replaces it.
 
 [ext_resource type="Script" uid="uid://dpgliikcwmv3d" path="res://scripts/world/SCRIPT_island_world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/SCRIPT_fly_camera.gd" id="2_flycam"]
@@ -89,9 +92,9 @@ environment = SubResource("Env_w3")
 transform = Transform3D(0.4608442, 0.13379453, -0.8773372, 0.31493494, 0.89957845, 0.30261424, 0.8297219, -0.4157622, 0.3724289, 0, 800, 0)
 
 [node name="FlyCamera" type="Camera3D" parent="." unique_id=106799914]
-transform = Transform3D(1, 0, 0, 0, 0.5, 0.866, 0, -0.866, 0.5, 0, 86.6, 50)
+transform = Transform3D(1, 0, 0, 0, 0.4226, 0.9063, 0, -0.9063, 0.4226, 0, 89.09, 44.04)
 current = true
-fov = 50.0
+fov = 30.0
 far = 6000.0
 script = ExtResource("2_flycam")
 speed = 60.0
