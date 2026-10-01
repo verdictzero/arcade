@@ -477,6 +477,9 @@ var _pg_warmup := 0             ## Chunks to discard before the next timed windo
 
 
 func _ready() -> void:
+	# A single-threaded web export has no threads to hand work to; build inline.
+	if OS.has_feature("nothreads"):
+		use_threads = false
 	add_to_group("origin_shiftable")
 	if field == null:
 		# Fall back to stock settings rather than rendering nothing — dropping this

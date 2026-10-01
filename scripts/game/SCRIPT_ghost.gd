@@ -26,6 +26,11 @@ var _rng := RandomNumberGenerator.new()
 var _t := 0.0
 
 
+func _init() -> void:
+	# The ghost's own body; the rest of MODEL_ghost.glb is a stray Mac-Pan.
+	keep_only = "Sphere_002"
+
+
 func _ready() -> void:
 	super()
 	_rng.seed = hash(name)

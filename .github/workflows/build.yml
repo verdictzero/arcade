@@ -1,0 +1,99 @@
+name: Build and deploy
+
+# Every push builds the game for the web and for Linux x86_64 with Godot 4.7.1:
+# import, bake the visible world (tools/TOOL_bake_world.gd + the digest table the
+# export needs to find it, tools/TOOL_bake_digests.py), export both presets.
+#   * The Linux build is uploaded as the `arcade-linux-x86_64` artifact.
+#   * The web build is deployed to GitHub Pages (Settings -> Pages -> Source:
+#     "GitHub Actions"). It is the single-threaded web export, which needs no
+#     cross-origin-isolation headers (Pages cannot send them); the world comes out
+#     of the bake, and what little is built at load runs inline (`nothreads`).
+
+on:
+  push:
+    branches: [main, claude/bold-wright-s372st]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7.1
+  GODOT_STATUS: stable
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot and export templates
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}
+
+      - name: Install Godot and export templates
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          V="${GODOT_VERSION}-${GODOT_STATUS}"
+          BASE="https://github.com/godotengine/godot-builds/releases/download/${V}"
+          mkdir -p ~/godot
+          curl -sSL -o godot.zip "${BASE}/Godot_v${V}_linux.x86_64.zip"
+          unzip -q godot.zip -d ~/godot
+          mv ~/godot/Godot_v${V}_linux.x86_64 ~/godot/godot
+          curl -sSL -o templates.tpz "${BASE}/Godot_v${V}_export_templates.tpz"
+          T=~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_STATUS}
+          mkdir -p "$T"
+          unzip -q -j templates.tpz templates/linux_release.x86_64 templates/linux_debug.x86_64 \
+              templates/web_release.zip templates/web_debug.zip templates/version.txt -d "$T"
+          rm godot.zip templates.tpz
+
+      - name: Import project
+        run: ~/godot/godot --headless --path . --import
+
+      - name: Bake the visible world
+        run: |
+          ~/godot/godot --headless --path . --script res://tools/TOOL_bake_world.gd -- --dir=res://data/bake
+          python3 tools/TOOL_bake_digests.py
+          ls -la data/bake
+
+      - name: Export Linux x86_64
+        run: |
+          mkdir -p build/linux
+          ~/godot/godot --headless --path . --export-release "Linux" build/linux/arcade.x86_64
+          test -s build/linux/arcade.x86_64
+
+      - name: Export Web
+        run: |
+          mkdir -p build/web
+          ~/godot/godot --headless --path . --export-release "Web" build/web/index.html
+          test -s build/web/index.wasm
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: arcade-linux-x86_64
+          path: build/linux/arcade.x86_64
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -301,6 +301,9 @@ var _ready_ok := false
 
 
 func _ready() -> void:
+	# A single-threaded web export has no threads to hand work to; build inline.
+	if OS.has_feature("nothreads"):
+		use_threads = false
 	add_to_group("origin_shiftable")
 	_world = get_node_or_null(island_world_path) as Node3D
 	if _world != null and _world.has_method("get_field"):

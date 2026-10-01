@@ -76,6 +76,13 @@ func _init(label := "lane") -> void:
 ## safe for it — a borrowed field, its mutex-guarded cursor and result list — and
 ## never the scene tree.
 func spawn(n: int, body: Callable) -> void:
+	# A single-threaded build (the no-threads web export) cannot start a Thread:
+	# run each lane's body inline instead. A lane loops until the shared queue is
+	# empty, so this does the whole job now, on the caller's frame.
+	if OS.has_feature("nothreads"):
+		for i in maxi(n, 0):
+			body.call()
+		return
 	for i in maxi(n, 0):
 		var t := Thread.new()
 		# NORMAL rather than HIGH. The point of moving off the pool is to stop

@@ -32,9 +32,11 @@ signal reached_tile(tile: Vector2i)
 
 @export_group("Model")
 @export var model_scene: PackedScene
-## Child nodes of the model to keep; empty keeps all. (MODEL_ghost.glb carries a
-## copy of Mac-Pan as well as the ghost.)
-@export var keep_nodes: PackedStringArray = []
+## Child nodes of the model to keep, comma-separated; empty keeps all.
+## (MODEL_ghost.glb carries a copy of Mac-Pan as well as the ghost.) A String and
+## not a PackedStringArray because the export's scene conversion dropped the
+## array, and the exported ghosts came out wearing Mac-Pan.
+@export var keep_only := ""
 @export var model_scale := 0.1
 @export var model_lift := 0.7
 ## Which way the model's face points at rest, as a yaw from +Z (radians).
@@ -256,9 +258,12 @@ func _build_model() -> Node3D:
 		return null
 	var m := model_scene.instantiate() as Node3D
 	m.name = "Model"
-	if not keep_nodes.is_empty():
+	var keep := PackedStringArray()
+	for n in keep_only.split(",", false):
+		keep.append(n.strip_edges())
+	if not keep.is_empty():
 		for c in m.get_children():
-			if not keep_nodes.has(String(c.name)):
+			if not keep.has(String(c.name)):
 				m.remove_child(c)
 				c.queue_free()
 	m.scale = Vector3.ONE * model_scale
