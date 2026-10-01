@@ -12,15 +12,18 @@
 ; THERE IS NO LIGHT. Every material here is unshaded and computes its own sun from
 ; the `tod_*` shader globals TimeOfDay publishes; SunPivot only holds the direction.
 ;
-; FlyCamera starts in the gameplay view: 65 degrees down, FOV 30, 98 m out to the
-; south, framing the whole board edge to edge with ~8% to spare. The narrow lens is
-; what keeps the corridors open: a 1.6 m hedge hides 1.6 m of corridor behind it
-; from any eye under 45 degrees, and a wide lens close in sees the far rows from
-; ~38. At FOV 30 the far rows are seen from ~52 and the near ones from ~79. It
-; still flies (WASD/QE, wheel for speed) until the game camera replaces it.
+; GameCamera is fixed: 65 degrees down, FOV 30, 98 m out to the south, framing
+; the whole board edge to edge with ~8% to spare. The narrow lens is what keeps the
+; corridors open: a 1.6 m hedge hides 1.6 m of corridor behind it from any eye
+; under 45 degrees, and a wide lens close in sees the far rows from ~38. At FOV 30
+; the far rows are seen from ~52 and the near ones from ~79. (The old free-fly
+; camera is still in scripts/SCRIPT_fly_camera.gd; attach it here to fly about.)
+;
+; MacPan and the four Ghosts run the maze (scripts/game/). The move_* actions
+; (WASD, arrows, d-pad, stick) steer Mac-Pan; the ghosts wander for now. Anything
+; that leaves through the side tunnel beams out and in with TeleportFx.
 
 [ext_resource type="Script" uid="uid://dpgliikcwmv3d" path="res://scripts/world/SCRIPT_island_world.gd" id="1_world"]
-[ext_resource type="Script" path="res://scripts/SCRIPT_fly_camera.gd" id="2_flycam"]
 [ext_resource type="Script" uid="uid://dsu5lph68rty8" path="res://scripts/SCRIPT_floating_origin.gd" id="3_floatorigin"]
 [ext_resource type="Material" path="res://materials/MAT_terrain_splat_w2.tres" id="4_terrain"]
 [ext_resource type="Material" path="res://materials/MAT_sky_w2_void.tres" id="5_sky"]
@@ -53,6 +56,10 @@
 [ext_resource type="Script" path="res://scripts/world/SCRIPT_horizon_clouds.gd" id="25_horizonclouds"]
 [ext_resource type="Material" path="res://materials/MAT_horizon_clouds.tres" id="26_horizoncloudmat"]
 [ext_resource type="Script" path="res://scripts/world/SCRIPT_hedge_maze.gd" id="70_maze"]
+[ext_resource type="Script" path="res://scripts/game/SCRIPT_macpan.gd" id="71_macpan"]
+[ext_resource type="Script" path="res://scripts/game/SCRIPT_ghost.gd" id="72_ghost"]
+[ext_resource type="PackedScene" path="res://models/MODEL_macpan.glb" id="73_macpanmodel"]
+[ext_resource type="PackedScene" path="res://models/MODEL_ghost.glb" id="74_ghostmodel"]
 
 [sub_resource type="Sky" id="Sky_w3"]
 sky_material = ExtResource("5_sky")
@@ -91,13 +98,11 @@ environment = SubResource("Env_w3")
 [node name="SunPivot" type="Node3D" parent="." unique_id=1278548373]
 transform = Transform3D(0.4608442, 0.13379453, -0.8773372, 0.31493494, 0.89957845, 0.30261424, 0.8297219, -0.4157622, 0.3724289, 0, 800, 0)
 
-[node name="FlyCamera" type="Camera3D" parent="." unique_id=106799914]
+[node name="GameCamera" type="Camera3D" parent="." unique_id=106799914]
 transform = Transform3D(1, 0, 0, 0, 0.4226, 0.9063, 0, -0.9063, 0.4226, 0, 89.09, 44.04)
 current = true
 fov = 30.0
 far = 6000.0
-script = ExtResource("2_flycam")
-speed = 60.0
 
 [node name="IslandWorld" type="Node3D" parent="." unique_id=1377292417]
 script = ExtResource("1_world")
@@ -109,6 +114,63 @@ prewarm = true
 
 [node name="HedgeMaze" type="Node3D" parent="."]
 script = ExtResource("70_maze")
+
+[node name="MacPan" type="Node3D" parent="."]
+script = ExtResource("71_macpan")
+speed = 7.5
+start_tile = Vector2i(13, 23)
+start_dir = Vector2i(-1, 0)
+model_scene = ExtResource("73_macpanmodel")
+model_scale = 0.097
+model_lift = 0.7
+
+[node name="Blinky" type="Node3D" parent="."]
+script = ExtResource("72_ghost")
+speed = 6.8
+start_tile = Vector2i(13, 11)
+start_dir = Vector2i(-1, 0)
+model_scene = ExtResource("74_ghostmodel")
+keep_nodes = PackedStringArray("Sphere_002")
+model_scale = 0.55
+model_lift = 1.05
+model_front_yaw = 1.5707964
+color = Color(1, 0.12, 0.1, 1)
+
+[node name="Pinky" type="Node3D" parent="."]
+script = ExtResource("72_ghost")
+speed = 6.8
+start_tile = Vector2i(13, 14)
+start_dir = Vector2i(0, -1)
+model_scene = ExtResource("74_ghostmodel")
+keep_nodes = PackedStringArray("Sphere_002")
+model_scale = 0.55
+model_lift = 1.05
+model_front_yaw = 1.5707964
+color = Color(1, 0.6, 0.82, 1)
+
+[node name="Inky" type="Node3D" parent="."]
+script = ExtResource("72_ghost")
+speed = 6.8
+start_tile = Vector2i(11, 14)
+start_dir = Vector2i(0, -1)
+model_scene = ExtResource("74_ghostmodel")
+keep_nodes = PackedStringArray("Sphere_002")
+model_scale = 0.55
+model_lift = 1.05
+model_front_yaw = 1.5707964
+color = Color(0.2, 0.95, 1, 1)
+
+[node name="Clyde" type="Node3D" parent="."]
+script = ExtResource("72_ghost")
+speed = 6.8
+start_tile = Vector2i(16, 14)
+start_dir = Vector2i(0, -1)
+model_scene = ExtResource("74_ghostmodel")
+keep_nodes = PackedStringArray("Sphere_002")
+model_scale = 0.55
+model_lift = 1.05
+model_front_yaw = 1.5707964
+color = Color(1, 0.62, 0.2, 1)
 
 [node name="VegScatter" type="Node3D" parent="." unique_id=617426688]
 script = ExtResource("13_veg")
@@ -162,7 +224,7 @@ material = ExtResource("26_horizoncloudmat")
 
 [node name="FloatingOrigin" type="Node" parent="." unique_id=433552099]
 script = ExtResource("3_floatorigin")
-reference_path = NodePath("../FlyCamera")
+reference_path = NodePath("../GameCamera")
 threshold = 8000.0
 horizontal_only = true
 

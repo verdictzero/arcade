@@ -6,7 +6,7 @@ extends SceneTree
 #   xvfb-run -s "-screen 0 1920x1080x24" godot --path . -s tools/TOOL_arena_shots.gd -- <out_dir>
 #
 # Waits for the loading screen to finish (terrain prewarm + both scatters), then
-# for each view parks FlyCamera, lets streaming settle, and grabs the frame.
+# for each view parks GameCamera, lets streaming settle, and grabs the frame.
 
 const SCENE := "res://scenes/SCENE_arena.tscn"
 const SETTLE_FRAMES := 90
@@ -14,7 +14,7 @@ const LOAD_TIMEOUT_S := 600.0
 
 # name -> [eye, look_at target]
 const VIEWS := {
-	"game": [],  # the scene's own FlyCamera pose
+	"game": [],  # the scene's own GameCamera pose
 	"high": [Vector3(0, 260, 200), Vector3(0, 0, -10)],
 	"maze_low": [Vector3(-14, 9, 34), Vector3(0, 0, 0)],
 	"meadow_low": [Vector3(0, 4, 70), Vector3(0, 1, 0)],
@@ -30,9 +30,7 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	var scene := (load(SCENE) as PackedScene).instantiate()
 	root.add_child(scene)
-	var cam := scene.get_node("FlyCamera") as Camera3D
-	cam.set_process(false)
-	cam.set_process_unhandled_input(false)
+	var cam := scene.get_node("GameCamera") as Camera3D
 	var loading := scene.get_node_or_null("LoadingScreen") as CanvasLayer
 	var t0 := Time.get_ticks_msec()
 	await process_frame
