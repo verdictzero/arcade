@@ -285,6 +285,15 @@ const _COAST_PROBE := 9
 ## its way out with exactly the hitches prewarming exists to remove. Leave it at 0
 ## unless something is actually short.
 @export var prewarm_budget_mb := 0.0
+## Only prewarm chunks within this many metres (3D, chunk rect to anchor) of the
+## anchor; 0 takes every chunk of every island in range, golf's way. For a FIXED
+## camera, which sees a known patch of ground and never anything else: the arcade
+## arena sets it to the camera's footprint plus padding, so the bake holds what
+## is on screen and not the rest of the island.
+@export var prewarm_radius := 0.0
+## Also prewarm the LOD levels the anchor does NOT need (golf's default), so a
+## moving camera never meshes. A fixed camera only ever shows the live level.
+@export var prewarm_spares := true
 
 @export_group("Pregeneration")
 ## Build the entire world up front instead of streaming it in around the camera.
@@ -1264,6 +1273,8 @@ func _pregen_jobs_for(state: Dictionary, isl: IslandField.Island) -> void:
 		var z0 := base_z + float(ck.y) * chunk_size
 		var dist := _rect_distance(x0, z0, x0 + chunk_size, z0 + chunk_size,
 				isl.base_y, _pg_anchor)
+		if prewarm_radius > 0.0 and dist > prewarm_radius:
+			continue
 		if not prewarm or pregenerate:
 			_pg_jobs.append({"cell": cell, "ck": ck, "dist": dist, "rank": 0,
 					"cells": maxi(pregen_cells, 1), "lod": -1, "install": true})
@@ -1279,6 +1290,8 @@ func _pregen_jobs_for(state: Dictionary, isl: IslandField.Island) -> void:
 			var lod: int = entry
 			var cells := _cells_for_lod(lod)
 			if seen.has(cells):
+				continue
+			if not prewarm_spares and lod != live_lod:
 				continue
 			seen[cells] = true
 			# Rank 0 is what the anchor puts on screen; rank 1 is a spare level, and

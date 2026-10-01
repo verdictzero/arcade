@@ -78,6 +78,27 @@ func reset_to(tile: Vector2i, dir: Vector2i) -> void:
 	_place()
 
 
+## Back to `start_tile` / `start_dir`, visible and solid.
+func respawn() -> void:
+	reset_to(start_tile, start_dir)
+	set_model_visible(true)
+
+
+## Stop (or restart) moving and animating, wherever the actor is.
+func set_frozen(frozen: bool) -> void:
+	set_physics_process(not frozen)
+
+
+func set_model_visible(v: bool) -> void:
+	if _model != null:
+		_model.visible = v
+
+
+## Where the actor is, in tile units (tile centres on integers).
+func grid_pos() -> Vector2:
+	return _pos
+
+
 func tile() -> Vector2i:
 	return Vector2i(roundi(_pos.x), roundi(_pos.y))
 

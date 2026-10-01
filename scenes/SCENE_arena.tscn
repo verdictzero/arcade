@@ -21,7 +21,9 @@
 ;
 ; MacPan and the four Ghosts run the maze (scripts/game/). The move_* actions
 ; (WASD, arrows, d-pad, stick) steer Mac-Pan; the ghosts wander for now. Anything
-; that leaves through the side tunnel beams out and in with TeleportFx.
+; that leaves through the side tunnel beams out and in with TeleportFx. Pellets
+; are the dots, Game runs the rules (score, death by ExplosionFx, lives, levels)
+; and Hud shows them in seven-segment boxes.
 
 [ext_resource type="Script" uid="uid://dpgliikcwmv3d" path="res://scripts/world/SCRIPT_island_world.gd" id="1_world"]
 [ext_resource type="Script" uid="uid://dsu5lph68rty8" path="res://scripts/SCRIPT_floating_origin.gd" id="3_floatorigin"]
@@ -60,6 +62,9 @@
 [ext_resource type="Script" path="res://scripts/game/SCRIPT_ghost.gd" id="72_ghost"]
 [ext_resource type="PackedScene" path="res://models/MODEL_macpan.glb" id="73_macpanmodel"]
 [ext_resource type="PackedScene" path="res://models/MODEL_ghost.glb" id="74_ghostmodel"]
+[ext_resource type="Script" path="res://scripts/game/SCRIPT_pellets.gd" id="75_pellets"]
+[ext_resource type="Script" path="res://scripts/ui/SCRIPT_arcade_hud.gd" id="76_hud"]
+[ext_resource type="Script" path="res://scripts/game/SCRIPT_arcade_game.gd" id="77_game"]
 
 [sub_resource type="Sky" id="Sky_w3"]
 sky_material = ExtResource("5_sky")
@@ -109,11 +114,22 @@ script = ExtResource("1_world")
 field = ExtResource("8_field")
 terrain_material = ExtResource("4_terrain")
 cliff_material = ExtResource("12_cliff")
-view_distance = 2000.0
+view_distance = 200.0
 prewarm = true
+prewarm_radius = 170.0
+prewarm_spares = false
 
 [node name="HedgeMaze" type="Node3D" parent="."]
 script = ExtResource("70_maze")
+
+[node name="Pellets" type="Node3D" parent="."]
+script = ExtResource("75_pellets")
+
+[node name="Hud" type="CanvasLayer" parent="."]
+script = ExtResource("76_hud")
+
+[node name="Game" type="Node" parent="."]
+script = ExtResource("77_game")
 
 [node name="MacPan" type="Node3D" parent="."]
 script = ExtResource("71_macpan")
@@ -181,14 +197,18 @@ fern_material = ExtResource("29_fernmat")
 tree_sprites = [ExtResource("30_fir_t1"), ExtResource("31_fir_t2"), ExtResource("32_fir_m"), ExtResource("33_fir_j")]
 bush_sprites = [ExtResource("34_bush_l1"), ExtResource("35_bush_l4"), ExtResource("36_bush_s1"), ExtResource("37_bush_s2")]
 fern_sprites = [ExtResource("38_fern")]
+view_distance = 160.0
 prescatter = true
+prescatter_radius = 140.0
+prescatter_clip = true
 
 [node name="GrassScatter" type="Node3D" parent="." unique_id=744196201]
 script = ExtResource("18_grass")
 island_world_path = NodePath("../IslandWorld")
 sprites = [ExtResource("39_grass")]
 material = ExtResource("19_grassmat")
-view_distance = 300.0
+view_distance = 70.0
+center_path = NodePath("../HedgeMaze")
 
 [node name="TimeOfDay" type="Node3D" parent="." unique_id=484064770 node_paths=PackedStringArray("sun_pivot", "world_environment")]
 script = ExtResource("14_todbus")

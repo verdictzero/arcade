@@ -172,6 +172,10 @@ extends Node3D
 ## Tufts exist within this logical distance of the camera. Keep the material's
 ## `far_end` at or under it, or they pop out while still fully opaque.
 @export var view_distance := 90.0
+## Measure `view_distance` from this node instead of from the camera. For a FIXED
+## camera looking down at an angle, whose visible ground is a patch in front of
+## it and not a disc round it: the arcade arena puts this on the board's centre.
+@export var center_path: NodePath
 @export var keep_margin := 25.0
 @export var rescan_interval := 3
 ## Grid cells per tile side. The tile is the unit of meshing, of caching and of
@@ -402,7 +406,7 @@ func _process(_delta: float) -> void:
 	_frame += 1
 	if not _force_rescan and _frame % maxi(rescan_interval, 1) != 0:
 		return
-	var eye := cam.global_position + _origin_offset   # logical
+	var eye := _scan_eye(cam)
 	# Everything a scan produces is a function of the CELL, so an eye still inside
 	# the one the last scan was taken from would recompute an identical answer.
 	# `_pending` is in the test as well as `_force_rescan`: a worker whose tile has
@@ -817,6 +821,13 @@ func _exit_tree() -> void:
 # ---------------------------------------------------------------- prefilling
 
 ## One slice of the up-front fill, driven by `SCRIPT_world_loading_screen.gd` so the
+## Where the scan is measured from, in logical space: `center_path`'s node if set,
+## else the camera.
+func _scan_eye(cam: Camera3D) -> Vector3:
+	var c := get_node_or_null(center_path) as Node3D if not center_path.is_empty() else null
+	return (c.global_position if c != null else cam.global_position) + _origin_offset
+
+
 ## ground cover is already down when the screen lifts rather than sprouting around
 ## the player over the first second of play. True when there is no more to do.
 func prefill_step() -> bool:
@@ -825,7 +836,7 @@ func prefill_step() -> bool:
 	var cam := get_viewport().get_camera_3d()
 	if cam == null:
 		return true
-	_rescan(cam.global_position + _origin_offset, maxi(prefill_eval_per_step, 1))
+	_rescan(_scan_eye(cam), maxi(prefill_eval_per_step, 1))
 	_prefill_total = maxi(_prefill_total, _todo)
 	return _todo <= 0
 

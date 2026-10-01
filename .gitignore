@@ -6,7 +6,6 @@
 # *.import IS DELIBERATELY NOT IGNORED: it carries each asset's uid:// and its
 # import settings (VRAM compression, mipmaps). Same rule as golf.
 
-export_presets.cfg
 /build/
 
 # Baked terrain/vegetation worlds (TerrainBake / VegBake). Reproducible, large,

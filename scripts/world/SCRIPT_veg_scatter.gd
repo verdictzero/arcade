@@ -495,6 +495,10 @@ extends Node3D
 ## full extent, because half a wood with a straight edge down the middle of it is
 ## worse than either building the rest or building none of it.
 @export var prescatter_radius := 0.0
+## Clip the prescatter to `prescatter_radius` TILE BY TILE (horizontal distance
+## from the anchor to the tile's nearest point) instead of taking whole islands.
+## For a fixed camera, which only ever sees the ground around it: the arcade arena.
+@export var prescatter_clip := false
 ## Tile builds in flight while prescattering, or 0 to take one per core less one.
 ##
 ## THIS USED TO BE A CONSTANT 4, on a measurement that was not measuring what it
@@ -1897,6 +1901,11 @@ func _prescatter_tiles() -> Array:
 				var nz := clampf(c.y, float(tz) * _tile_size, float(tz + 1) * _tile_size)
 				if Vector2(nx, nz).distance_to(c) > e:
 					continue
+				if prescatter_clip:
+					var ax := clampf(anchor.x, float(tx) * _tile_size, float(tx + 1) * _tile_size)
+					var az := clampf(anchor.z, float(tz) * _tile_size, float(tz + 1) * _tile_size)
+					if Vector2(ax, az).distance_to(Vector2(anchor.x, anchor.z)) > r:
+						continue
 				seen[key] = true
 				out.append(key)
 	return out
