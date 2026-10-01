@@ -74,7 +74,7 @@ fog_height_density = 2.0
 
 [sub_resource type="ShaderMaterial" id="Mat_dither_w3"]
 shader = ExtResource("6_dither")
-shader_parameter/pixel_size = 2
+shader_parameter/pixel_size = 1
 shader_parameter/pixel_aspect = 1.0
 shader_parameter/lut_levels = 16
 shader_parameter/dither_strength = 1.0

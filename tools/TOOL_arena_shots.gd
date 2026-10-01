@@ -3,7 +3,7 @@ extends SceneTree
 # Renders SCENE_arena from a few fixed viewpoints and saves PNGs. Needs a display
 # (it renders), so on a headless box run it under a virtual one:
 #
-#   xvfb-run -s "-screen 0 1280x720x24" godot --path . -s tools/TOOL_arena_shots.gd -- <out_dir>
+#   xvfb-run -s "-screen 0 1920x1080x24" godot --path . -s tools/TOOL_arena_shots.gd -- <out_dir>
 #
 # Waits for the loading screen to finish (terrain prewarm + both scatters), then
 # for each view parks FlyCamera, lets streaming settle, and grabs the frame.
