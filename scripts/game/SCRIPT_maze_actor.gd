@@ -60,6 +60,9 @@ var _materials: Array[ShaderMaterial] = []
 var _beam := 0.0          # 0 solid .. 1 gone
 var _teleport_phase := 0  # 0 none, 1 beaming out, 2 beaming in
 var _teleport_to := Vector2i.ZERO
+## The least the model is ever dissolved, teleport or not: an eaten ghost going
+## home is a wisp of itself. Call `refresh_look()` after changing it.
+var dissolve_floor := 0.0
 
 
 func _ready() -> void:
@@ -226,10 +229,14 @@ func _teleport_step(delta: float) -> void:
 				_moving = true
 
 
+func refresh_look() -> void:
+	_set_beam(_beam)
+
+
 func _set_beam(v: float) -> void:
 	_beam = v
 	for m in _materials:
-		m.set_shader_parameter("dissolve", v)
+		m.set_shader_parameter("dissolve", maxf(v, dissolve_floor))
 		m.set_shader_parameter("energy", sin(v * PI) * 0.8)
 	if _model != null:
 		# A squeeze up the beam's axis as it goes: narrower, a touch taller.
