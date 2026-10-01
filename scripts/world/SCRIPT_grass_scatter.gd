@@ -125,6 +125,12 @@ extends Node3D
 ## Lower it if you want tufts under the trees again; 0.75 was the old value and
 ## left about a quarter of the meadow standing in deep wood.
 @export_range(0.0, 1.0) var forest_falloff := 1.0
+## THE MEADOW: the arena's camera side (the field's "meadow" key, see
+## SCRIPT_arena_field.gd). Grows at this density whatever the splat says, and its
+## tufts are `meadow_scale` times taller, so it reads as long grass from the game
+## camera rather than as lawn.
+@export_range(0.0, 1.0) var meadow_density := 1.0
+@export var meadow_scale := 1.6
 ## How much of the grass the RUIN ENTRANCE's clearing takes out — a roll per cell
 ## on `IslandField.ruin_at`'s levelling weight, like the vegetation's.
 ##
@@ -866,7 +872,8 @@ func _evaluate_cell(cell: Vector2i, f: IslandField) -> Dictionary:
 	var keep := _rand(hx, 1)
 
 	# The density roll's ceiling, tested BEFORE the field is touched. The roll below
-	# is `density` scaled by two factors that are each at most 1 — how much of the
+	# is at most `meadow_density` in the meadow, and elsewhere `density` scaled by two
+	# factors that are each at most 1 — how much of the
 	# ground is turf, and how far the canopy has thinned it — so `density` is an
 	# upper bound on it and a cell that fails against that fails whatever the
 	# ground turns out to be.
@@ -875,7 +882,7 @@ func _evaluate_cell(cell: Vector2i, f: IslandField) -> Dictionary:
 	# Worth having because the sample is the ENTIRE cost of this function —
 	# `IslandField.sample` is ~0.15 ms against a few dozen hashed arithmetic ops —
 	# and at the shipped 0.85 it skips 15% of cells outright.
-	if keep > density:
+	if keep > maxf(density, meadow_density):
 		return {"valid": false}
 
 	var jx := (_rand(hx, 2) - 0.5) * 0.9 * grass_grid
@@ -894,6 +901,9 @@ func _evaluate_cell(cell: Vector2i, f: IslandField) -> Dictionary:
 		return {"valid": false}
 	if s.get("flatten", 1.0) > max_flatten:
 		return {"valid": false}
+	# No tufts on the maze floor — see SCRIPT_arena_field.gd.
+	if s.get("arena", 0.0) >= 0.5:
+		return {"valid": false}
 	# The ruin's clearing — see `ruin_grass_keep`. Its own lane (7), clear of the
 	# six this function already rolls on, so whether a tuft survives the clearing
 	# says nothing about how big it is or which sprite it drew.
@@ -908,10 +918,12 @@ func _evaluate_cell(cell: Vector2i, f: IslandField) -> Dictionary:
 	# soil and litter rather than stopping at a line.
 	var want := density * clampf(w.r * 1.4, 0.0, 1.0)
 	want *= lerpf(1.0, 1.0 - clampf(s.get("forest", 0.0), 0.0, 1.0), forest_falloff)
+	var meadow := clampf(float(s.get("meadow", 0.0)), 0.0, 1.0)
+	want = lerpf(want, meadow_density, meadow)
 	if keep > want:
 		return {"valid": false}
 
-	var scale := lerpf(min_scale, max_scale, _rand(hx, 4))
+	var scale := lerpf(min_scale, max_scale, _rand(hx, 4)) * lerpf(1.0, meadow_scale, meadow)
 	return {
 		"valid": true,
 		"pos": Vector3(wx, s["height"], wz),

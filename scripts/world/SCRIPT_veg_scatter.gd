@@ -2001,6 +2001,11 @@ func _evaluate_cell(cell: Vector2i, f: IslandField) -> Dictionary:
 		return {"valid": false}
 	if s.get("flatten", 1.0) > max_flatten:
 		return {"valid": false}
+	# The arena, its margin and the camera's side grow nothing here — that side is
+	# GrassScatter's meadow. See SCRIPT_arena_field.gd. Absent on a plain
+	# IslandField, so 0 there and this never fires.
+	if s.get("veg_clear", 0.0) >= 0.5:
+		return {"valid": false}
 	var w: Color = s.get("weights", Color(0, 0, 0, 0))
 	if w.r + w.g < 0.6:
 		return {"valid": false}

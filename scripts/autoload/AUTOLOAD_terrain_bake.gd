@@ -80,6 +80,7 @@ const STORE_NAME := "terrain"
 const _SOURCES := [
 	"res://scripts/world/SCRIPT_chunk_mesher.gd",
 	"res://scripts/world/SCRIPT_island_field.gd",
+	"res://scripts/world/SCRIPT_arena_field.gd",
 ]
 
 ## `peek` answers one of these.

@@ -1,18 +1,19 @@
 [gd_scene format=3 uid="uid://dw3knvxq8rtb2"]
 
-; ISLAND 0, PORTED FROM GOLF (scenes/SCENE_island_0.tscn there) as the backdrop for
-; the arcade maze. What came across is the world itself: the procedural island
-; (IslandWorld + data/ISLANDFIELD_hub_solid.tres + the terrain/cliff materials), the
-; vegetation (VegScatter trees/bushes/ferns, GrassScatter), the sky and its
-; time-of-day bus, the cloud sea and horizon band, the dither post-process and the
-; loading screen. What did NOT is golf's game on top of it: the crash wreck, escape
-; pod, stump debris, fire, ruins, glitch blobs, golf wall/forcefield, nightmare sky
-; director and pause menu. The field still describes golf zones and a crater, so the
-; terrain is shaped the same as golf's island; see docs/DOC_procedural_island_world.md.
+; THE PAC-MAN ARENA. Island 0's world from golf, reshaped by ArenaField
+; (data/ARENAFIELD_pacman.tres, scripts/world/SCRIPT_arena_field.gd) into a flat
+; 112 x 124 m floor for the hedge maze, centred on the origin, with forest on the
+; three far sides and a thick meadow on the camera's side (+Z), grass only. The rest of the island is
+; backdrop. Terrain is IslandWorld; plants are VegScatter (trees, bushes, ferns) and
+; GrassScatter; sky, cloud sea, horizon band, dither and loading screen came across
+; with it. None of golf's game did (wreck, pod, ruins, golf wall, pause menu).
 ;
 ; THERE IS NO LIGHT. Every material here is unshaded and computes its own sun from
-; the `tod_*` shader globals that TimeOfDay publishes; SunPivot only holds the sun's
-; direction. FlyCamera is arcade's own free-fly camera (scripts/SCRIPT_fly_camera.gd).
+; the `tod_*` shader globals TimeOfDay publishes; SunPivot only holds the direction.
+;
+; FlyCamera starts in the gameplay view: south of the board, 55 degrees down at its
+; centre, FOV 50. It still flies (WASD/QE, wheel for speed) until the game camera
+; replaces it.
 
 [ext_resource type="Script" uid="uid://dpgliikcwmv3d" path="res://scripts/world/SCRIPT_island_world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/SCRIPT_fly_camera.gd" id="2_flycam"]
@@ -21,7 +22,7 @@
 [ext_resource type="Material" path="res://materials/MAT_sky_w2_void.tres" id="5_sky"]
 [ext_resource type="Shader" uid="uid://bxape6ywlx1wt" path="res://shaders/SHADER_post_dither.gdshader" id="6_dither"]
 [ext_resource type="Texture2D" uid="uid://bv7nnufu30331" path="res://data/palettes/LUT_ps1-soft.png" id="7_lut"]
-[ext_resource type="Resource" path="res://data/ISLANDFIELD_hub_solid.tres" id="8_field"]
+[ext_resource type="Resource" path="res://data/ARENAFIELD_pacman.tres" id="8_field"]
 [ext_resource type="Material" path="res://materials/MAT_cliff_wall.tres" id="12_cliff"]
 [ext_resource type="Script" path="res://scripts/world/SCRIPT_veg_scatter.gd" id="13_veg"]
 [ext_resource type="Script" uid="uid://vpq2bj3v74xw" path="res://scripts/SCRIPT_sky_cycle_controller.gd" id="14_todbus"]
@@ -86,17 +87,19 @@ environment = SubResource("Env_w3")
 transform = Transform3D(0.4608442, 0.13379453, -0.8773372, 0.31493494, 0.89957845, 0.30261424, 0.8297219, -0.4157622, 0.3724289, 0, 800, 0)
 
 [node name="FlyCamera" type="Camera3D" parent="." unique_id=106799914]
-transform = Transform3D(1, 0, 0, 0, 0.9848, -0.1736, 0, 0.1736, 0.9848, 0, 240, 1900)
+transform = Transform3D(1, 0, 0, 0, 0.5736, -0.8192, 0, 0.8192, 0.5736, 0, 132, 92)
 current = true
-far = 12000.0
+fov = 50.0
+far = 6000.0
 script = ExtResource("2_flycam")
+speed = 60.0
 
 [node name="IslandWorld" type="Node3D" parent="." unique_id=1377292417]
 script = ExtResource("1_world")
 field = ExtResource("8_field")
 terrain_material = ExtResource("4_terrain")
 cliff_material = ExtResource("12_cliff")
-view_distance = 3600.0
+view_distance = 2000.0
 prewarm = true
 
 [node name="VegScatter" type="Node3D" parent="." unique_id=617426688]
@@ -115,6 +118,7 @@ script = ExtResource("18_grass")
 island_world_path = NodePath("../IslandWorld")
 sprites = [ExtResource("39_grass")]
 material = ExtResource("19_grassmat")
+view_distance = 300.0
 
 [node name="TimeOfDay" type="Node3D" parent="." unique_id=484064770 node_paths=PackedStringArray("sun_pivot", "world_environment")]
 script = ExtResource("14_todbus")

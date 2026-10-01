@@ -63,6 +63,7 @@ const STORE_NAME := "veg"
 const _SOURCES := [
 	"res://scripts/world/SCRIPT_veg_scatter.gd",
 	"res://scripts/world/SCRIPT_island_field.gd",
+	"res://scripts/world/SCRIPT_arena_field.gd",
 ]
 
 
