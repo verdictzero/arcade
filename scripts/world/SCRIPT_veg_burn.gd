@@ -207,10 +207,9 @@ static func bind_map(mat: ShaderMaterial, tex: Texture2D) -> bool:
 	bind_ember_ramp(mat)
 	var map := map_for(tex)
 	if map == null:
+		# Arcade ships no burn maps (nothing here burns), so this is the normal
+		# case and says nothing. Golf warned here, for a baker it had to re-run.
 		mat.set_shader_parameter("burn", 0.0)
-		push_warning("VegBurn: no burn map for %s — it will not burn. Run "
-				% (tex.resource_path if tex != null else "<null>")
-				+ "tools/TOOL_gen_burn_maps.py.")
 		return false
 	mat.set_shader_parameter("burn_map", map)
 	return true
