@@ -3,7 +3,8 @@ name: Build and deploy
 # Every push builds the game for the web and for Linux x86_64 with Godot 4.7.1:
 # import, bake the visible world (tools/TOOL_bake_world.gd + the digest table the
 # export needs to find it, tools/TOOL_bake_digests.py), export both presets.
-#   * The Linux build is uploaded as the `arcade-linux-x86_64` artifact.
+#   * The Linux build is published as a GitHub Release, `build-<run number>`,
+#     with arcade-linux-x86_64.tar.gz attached (and as a run artifact).
 #   * The web build is deployed to GitHub Pages (Settings -> Pages -> Source:
 #     "GitHub Actions"). It is the single-threaded web export, which needs no
 #     cross-origin-isolation headers (Pages cannot send them); the world comes out
@@ -15,7 +16,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # to publish the Linux build as a release
   pages: write
   id-token: write
 
@@ -40,7 +41,7 @@ jobs:
           path: |
             ~/godot
             ~/.local/share/godot/export_templates
-          key: godot-${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}
+          key: godot-${{ env.GODOT_VERSION }}-${{ env.GODOT_STATUS }}-nothreads
 
       - name: Install Godot and export templates
         if: steps.cache.outputs.cache-hit != 'true'
@@ -55,7 +56,8 @@ jobs:
           T=~/.local/share/godot/export_templates/${GODOT_VERSION}.${GODOT_STATUS}
           mkdir -p "$T"
           unzip -q -j templates.tpz templates/linux_release.x86_64 templates/linux_debug.x86_64 \
-              templates/web_release.zip templates/web_debug.zip templates/version.txt -d "$T"
+              templates/web_nothreads_release.zip templates/web_nothreads_debug.zip \
+              templates/version.txt -d "$T"
           rm godot.zip templates.tpz
 
       - name: Import project
@@ -79,10 +81,25 @@ jobs:
           ~/godot/godot --headless --path . --export-release "Web" build/web/index.html
           test -s build/web/index.wasm
 
+      - name: Package Linux build
+        run: tar -C build/linux -czf build/arcade-linux-x86_64.tar.gz arcade.x86_64
+
       - uses: actions/upload-artifact@v4
         with:
           name: arcade-linux-x86_64
-          path: build/linux/arcade.x86_64
+          path: build/arcade-linux-x86_64.tar.gz
+
+      - name: Publish Linux release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: Arcade build ${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          body: |
+            Linux x86_64 build of ${{ github.sha }} (`${{ github.ref_name }}`).
+            Extract and run: `tar xzf arcade-linux-x86_64.tar.gz && ./arcade.x86_64`
+          files: build/arcade-linux-x86_64.tar.gz
 
       - uses: actions/upload-pages-artifact@v3
         with:
