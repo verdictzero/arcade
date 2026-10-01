@@ -1,0 +1,21 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+.import/
+
+# *.import IS DELIBERATELY NOT IGNORED: it carries each asset's uid:// and its
+# import settings (VRAM compression, mipmaps). Same rule as golf.
+
+export_presets.cfg
+/build/
+
+# Baked terrain/vegetation worlds (TerrainBake / VegBake). Reproducible, large,
+# and renamed on every terrain tune. See docs/DOC_bake_retention.md.
+/data/bake/
+
+*.swp
+*~
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc

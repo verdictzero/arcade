@@ -1,0 +1,49 @@
+; XENOGOLF MONO -- the title screen's palette, and nothing else's.
+;
+; It is PALETTE_ps1-soft.hex's own grey ramp with the hue taken out: each of the
+; first 32 entries replaced by its Rec.709 luminance. So the tonal DISTRIBUTION
+; is the one the rest of the game's look was built on -- dense in the shadows,
+; even through the midtones -- and only the cast is gone. A fresh linear ramp
+; would have been easy and would have banded differently in the darks, which is
+; where this dither pass does its most visible work.
+;
+; WHY IT EXISTS. ps1-soft's greys go WARM above b0b0b0 (c0b8b0, e8d0d0, f8f0e8),
+; so a white-on-black scene quantised through it comes back cream: the title's
+; hologram measured rgb(192,184,176) -- a channel spread of 16 -- with 17% of
+; the frame carrying visible chroma. On a screen whose whole brief is white on
+; black that is the palette overruling the art.
+;
+; Every OTHER scene still uses LUT_ps1-soft. Its colours have somewhere to land
+; in that palette and this one would flatten them to grey.
+000000
+070707
+0f0f0f
+171717
+1f1f1f
+272727
+2f2f2f
+373737
+3f3f3f
+484848
+505050
+585858
+606060
+686868
+707070
+787878
+808080
+888888
+909090
+989898
+a0a0a0
+a8a8a8
+b0b0b0
+b9b9b9
+c1c1c1
+c9c9c9
+d1d1d1
+d9d9d9
+e1e1e1
+e9e9e9
+f1f1f1
+f7f7f7
