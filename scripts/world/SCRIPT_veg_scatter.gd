@@ -748,13 +748,13 @@ func _build_multimeshes() -> void:
 			# per-instance scale below is a height in metres directly and the two
 			# jitters stay independent of each other.
 			var sz := tex.get_size()
-			var quad := QuadMesh.new()
-			quad.size = Vector2(sz.x / maxf(sz.y, 1.0), 1.0)
-			# The pivot is the plant's BASE, not its middle: the scatter places it
-			# on the ground, and a centre-pivoted quad would bury half of it. The
-			# sink is applied to the POSITION instead, so it stays a fixed number of
-			# metres however tall the plant is.
-			quad.center_offset = Vector3(0.0, 0.5, 0.0)
+			# Four crossed planes, not a billboard — see SCRIPT_cross_mesh.gd. The
+			# pivot is the plant's BASE, not its middle: the scatter places it on the
+			# ground, and a centre-pivoted mesh would bury half of it. The sink is
+			# applied to the POSITION instead, so it stays a fixed number of metres
+			# however tall the plant is.
+			var quad := CrossMesh.build(Vector2(sz.x / maxf(sz.y, 1.0), 1.0),
+					Vector3(0.0, 0.5, 0.0))
 
 			var mat: ShaderMaterial = (mats[cls] as ShaderMaterial).duplicate()
 			mat.set_shader_parameter("albedo_tex", tex)
@@ -2218,12 +2218,12 @@ func _evaluate_cell(cell: Vector2i, f: IslandField) -> Dictionary:
 			# Sunk in METRES, off the position rather than the pivot, so a 22 m fir
 			# and a 1.3 m fern bury their bases by the same amount.
 			"pos": Vector3(wx + ox, h0 + grad.x * ox + grad.y * oz, wz + oz),
-			# Y-billboards ignore yaw, so scale is the whole basis. The quad is a
-			# metre tall and the sprite's own aspect wide (see
-			# `_build_multimeshes`), so X and Y both take the height and X
-			# additionally takes the width jitter.
-			"basis": Basis.IDENTITY.scaled(Vector3(
-					h * lerpf(width_jitter.x, width_jitter.y, _rand(hx, 6 + lane)), h, h)),
+			# Crossed planes (see `_build_multimeshes`), so the plant takes a yaw of its
+			# own off the hash, and the width jitter goes on X AND Z: the planes run
+			# at 45 degree steps, and widening only X would skew the diagonal ones.
+			# The mesh is a metre tall, so Y is the height in metres directly.
+			"basis": _plant_basis(h, h * lerpf(width_jitter.x, width_jitter.y,
+					_rand(hx, 6 + lane)), _rand(hx, 13 + lane)),
 			# Every sub-plant of a cell shares the cell's crater burn — it is a property
 			# of the ground the clump stands on. 0 off a crash site. Into
 			# `INSTANCE_CUSTOM.x` via `_pack_tile`.
@@ -2285,3 +2285,9 @@ func _value_noise(cell: Vector2i, salt: int) -> float:
 	var sx := fx * fx * (3.0 - 2.0 * fx)
 	var sz := fz * fz * (3.0 - 2.0 * fz)
 	return lerpf(lerpf(v00, v10, sx), lerpf(v01, v11, sx), sz)
+
+
+# A crossed-plane plant's basis: a yaw from `turn` (0..1), the mesh scaled to
+# `height` metres tall and `width` across every plane.
+static func _plant_basis(height: float, width: float, turn: float) -> Basis:
+	return Basis(Vector3.UP, turn * TAU) * Basis.from_scale(Vector3(width, height, width))

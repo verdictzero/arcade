@@ -176,6 +176,11 @@ uniform vec3 tint : source_color = vec3(1.0);
 // world position. Ten sprites over a hundred thousand plants is a lot of repeat;
 // this doubles the apparent variety for no texture memory, no per-instance data
 // and no extra draw call. Off restores the exact source art on every plant.
+// ON: the plant is a Y-billboard, turned to face the camera every frame (golf's
+// way, one quad a plant). OFF: the mesh is drawn as the scatter placed it, yaw and
+// all — arcade's way, where every plant is a CrossMesh of four crossed planes
+// (scripts/world/SCRIPT_cross_mesh.gd) that reads from above as well as from the side.
+uniform bool billboard = true;
 uniform bool flip_variants = true;
 
 group_uniforms wind;
@@ -651,10 +656,18 @@ void vertex() {
 	vec3 fwd = normalize(cross(right, up));
 
 	mat4 m;
-	m[0] = vec4(right * sx, 0.0);
-	m[1] = vec4(up * sy, 0.0);
-	m[2] = vec4(fwd * sx, 0.0);
-	m[3] = MODEL_MATRIX[3];
+	if (billboard) {
+		m[0] = vec4(right * sx, 0.0);
+		m[1] = vec4(up * sy, 0.0);
+		m[2] = vec4(fwd * sx, 0.0);
+		m[3] = MODEL_MATRIX[3];
+	} else {
+		// Crossed planes: the instance's own transform, and the sway below leans
+		// along its own axes rather than the camera's.
+		m = MODEL_MATRIX;
+		right = normalize(MODEL_MATRIX[0].xyz);
+		fwd = normalize(MODEL_MATRIX[2].xyz);
+	}
 
 	// THE INSTANCE'S ANCHOR, read before the sway moves anything. Everything that
 	// has to be one value for the whole quad is derived from THIS and never from

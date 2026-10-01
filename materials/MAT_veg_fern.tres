@@ -58,6 +58,7 @@
 [resource]
 render_priority = 0
 shader = ExtResource("1_veg")
+shader_parameter/billboard = false
 shader_parameter/alpha_scissor = 0.4
 shader_parameter/tint = Color(0.62, 0.62, 0.62, 1)
 shader_parameter/flip_variants = true

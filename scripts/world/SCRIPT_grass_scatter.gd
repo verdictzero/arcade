@@ -333,11 +333,10 @@ func _build_multimeshes() -> void:
 		var tex: Texture2D = sprites[i]
 		if tex == null:
 			continue
-		var quad := QuadMesh.new()
-		quad.size = tuft_size
-		# The pivot is the tuft's BASE, not its middle: the scatter places it on
-		# the ground, and a centre-pivoted quad would bury half of it.
-		quad.center_offset = Vector3(0.0, tuft_size.y * 0.5 - sink, 0.0)
+		# Four crossed planes, not a billboard — see SCRIPT_cross_mesh.gd. The pivot
+		# is the tuft's BASE, not its middle: the scatter places it on the ground,
+		# and a centre-pivoted mesh would bury half of it.
+		var quad := CrossMesh.build(tuft_size, Vector3(0.0, tuft_size.y * 0.5 - sink, 0.0))
 
 		var mat: ShaderMaterial = material.duplicate()
 		mat.set_shader_parameter("albedo_tex", tex)
@@ -927,10 +926,13 @@ func _evaluate_cell(cell: Vector2i, f: IslandField) -> Dictionary:
 	return {
 		"valid": true,
 		"pos": Vector3(wx, s["height"], wz),
-		# Y-billboards ignore yaw, so scale is the whole basis. Width is jittered
-		# independently of height so a field does not read as one sprite resized.
-		"basis": Basis.IDENTITY.scaled(
-				Vector3(scale * lerpf(0.85, 1.15, _rand(hx, 6)), scale, scale)),
+		# Crossed planes, so a yaw of its own off the hash (lane 8, clear of the
+		# others). Width is jittered independently of height so a field does not
+		# read as one sprite resized, and goes on X and Z together so the diagonal
+		# planes are not skewed.
+		"basis": Basis(Vector3.UP, _rand(hx, 8) * TAU) * Basis.from_scale(Vector3(
+				scale * lerpf(0.85, 1.15, _rand(hx, 6)), scale,
+				scale * lerpf(0.85, 1.15, _rand(hx, 6)))),
 		"variant": int(_rand(hx, 5) * float(maxi(_meshes.size(), 1))) % maxi(_meshes.size(), 1),
 		# How burnt this tuft looks, off the same remap and the same weight as the ground
 		# under it, scaled by `crater_burn_peak` for the same reason `veg_scatter` scales
